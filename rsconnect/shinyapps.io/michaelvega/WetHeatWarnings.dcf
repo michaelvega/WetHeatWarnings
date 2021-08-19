@@ -1,0 +1,14 @@
+name: WetHeatWarnings
+title: WetHeatWarnings
+username:
+account: michaelvega
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4510912
+bundleId: 4940860
+url: https://michaelvega.shinyapps.io/WetHeatWarnings/
+when: 1629371538.89544
+lastSyncTime: 1629371538.89544
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: README.md
