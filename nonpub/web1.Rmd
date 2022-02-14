@@ -1,0 +1,316 @@
+---
+title: "web1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r pressure, echo=FALSE}
+library(rvest)
+library(dplyr)
+library(stringr)
+library(reshape2)
+library(Rcpp)
+```
+
+```{r, echo=FALSE}
+toCelsius <- function(Fahrenheit){
+  Celsius <- (Fahrenheit - 32) * 5.0 / 9.0
+  return(Celsius)
+}
+
+toFahrenheit <- function(Celsius){
+  Fahrenheit <- 9.0 / 5.0 * Celsius + 32
+  return(Fahrenheit)
+}
+
+wetBulb <- function(TT,rh){
+  Tw = (TT * atan(0.151977 * (rh + 8.313659) ^ 0.5)) + atan(TT + rh) - atan(
+    rh - 1.676331) + 0.00391838 * (rh ^ 1.5) * atan(0.023101 * rh) - 4.686035
+  return(as.numeric(Tw))
+}
+
+toTime <- function(x){
+  if(x == "AM"){
+    return("(Morning)")
+  } else if (x == "PM") {
+    return("(Afternoon)")
+  } else if (x=="Night") {
+    return("(Night)")
+  } else {
+    return("")
+  }
+}
+
+toInt <- function(x){
+      if(x == "-"){
+        return(NA)
+      }
+      return(as.numeric(x))
+}
+
+toDate <- function(x){
+  res <- str_extract_all(x, "[\\d+]")
+  com <- paste0(res[[1]][1], res[[1]][2])
+  current_date_template <- as.character(Sys.Date())
+  current_date_template <- substr(current_date_template,1,8)
+  current_date <- paste0(current_date_template,com)
+  if(length(current_date) > 0){
+    return(current_date)
+  }
+  return(NA)
+}
+    
+toDateType <- function(x){
+  return(as.Date(x))
+}
+    
+    
+```
+
+```{r}
+cities_data <- read.csv("nonpub/city_name_link.csv")
+cities_data
+```
+
+```{r}
+req_url_template <- "https://www.weather-forecast.com/locations/REPLACE/forecasts/latest"
+
+#req_url <- sub("REPLACE", "Atlanta", req_url_template)
+#city<-"Atlanta"
+
+map_data <- c(city=character(),
+              lat=character(),
+              lng=character(),
+              country=character(),
+              province=character(),
+              Warning=character(),
+              Message=character(),
+              wet_bulb_temperature_today=character(),
+              popup_info=character(),
+              city_name_search=character())
+```
+
+```{r, echo=FALSE}
+for(u in 1:nrow(cities_data)){
+  #u=11
+  req_url <- cities_data[u,2]
+  city <- c(cities_data[u,1])
+  
+  
+  tryCatch({
+    req_content <- read_html(req_url)
+    
+    
+    
+    lists <- req_content%>%
+      html_table(., fill=T)
+    
+    prov_data_html <-
+      html_elements(req_content, xpath = '/html/body/main/section[1]/div[2]/div/div[1]/text()[1]')
+    
+    prov_data <- html_text(prov_data_html)
+    
+    subtitle <- prov_data[[1]]
+    
+    subtitle_re <- str_extract_all(subtitle, "\\(.+\\)")
+    if (grepl(",", subtitle_re[[1]]) == TRUE) {
+      subtitle_re_3 <- str_extract_all(subtitle, "\\(.+(?=,)")
+      province_str <- sub("\\(", "", subtitle_re_3[[1]])
+      subtitle_re_2 <- str_extract_all(subtitle, "(?<=,\\s)\\w+(-\\w+)*( \\w+)*")
+      if (length(subtitle_re_2) > 0) {
+        country_str <- as.character(subtitle_re_2[[1]])
+      } else {
+        country_str <- NA
+      }
+    } else {
+      province_str <-  c(sub("\\)", "", sub("\\(", "", subtitle_re[[1]])))
+      prov_data_html <-
+        html_elements(req_content, xpath = '/html/body/main/section[2]/div/div[2]/div[1]/ol/li[1]/a/span')
+      prov_data <- html_text(prov_data_html)
+      country_str <- prov_data[[1]]
+    }
+    
+    
+    #province_str
+    province <- c(province_str)
+    #country_str
+    country <- c(country_str)
+    
+    lat_data_html <- html_elements(req_content,xpath='/html/body/main/section[2]/div/div[2]/div[2]/div[2]/div/p/span[3]/span[1]')
+    
+    lat_data <- html_text(lat_data_html)
+    
+    lat_bold <- lat_data[1]
+    lat_bold_re <- str_extract_all(lat_bold, "\\d+(\\.\\d+)*(?=°)")
+    if(length(lat_bold_re) > 0) {
+      lat_dbl <- as.numeric(lat_bold_re[[1]])
+    } else {
+      lat_dbl <- NA
+    }
+    lat_bold_re2 <- str_extract_all(lat_bold, "(?<=°)\\s*\\w")
+    lat_direction <- sub(" ", "",lat_bold_re2[[1]])
+    
+    if(lat_direction == "N"){
+      lat <- c(lat_dbl)
+    } else if (lat_direction == "S"){
+      lat_dbl <- lat_dbl * -1
+      lat <- c(lat_dbl)
+    } else
+      lat <- NA
+    
+      
+    #lat_dbl
+    
+    
+    
+    lng_data_html <- html_elements(req_content,xpath='/html/body/main/section[2]/div/div[2]/div[2]/div[2]/div/p/span[3]/span[2]')
+    
+    lng_data <- html_text(lng_data_html)
+    
+    lng_bold <- lng_data[1]
+    lng_bold_re <- str_extract_all(lng_bold, "\\d+(\\.\\d+)*(?=°)")
+    if(length(lng_bold_re) > 0) {
+      lng_dbl <- as.numeric(lng_bold_re[[1]])
+    } else {
+      lng_dbl <- NA
+    }
+    
+    lng_bold_re2 <- str_extract_all(lng_bold, "(?<=°)\\s*\\w")
+    lng_direction <- sub(" ", "", lng_bold_re2[[1]])
+    
+    if(lng_direction == "E"){
+      lng <- c(lng_dbl)
+    } else if (lng_direction == "W"){
+      lng_dbl <- lng_dbl * -1
+      lng <- c(lng_dbl)
+    } else
+      lng <- NA
+    
+    #lng
+    
+    cities <- lists[[1]]
+    df_heat_entry <- data.frame(t(sapply(cities,c)))
+    
+    if(nrow(df_heat_entry) < 1){
+      Warning <- "Grey"
+      Message <- "No data"
+      next
+    }
+    
+    rownames(df_heat_entry) <- NULL
+    colnames(df_heat_entry) <- df_heat_entry[1,]
+    df_heat_entry <- df_heat_entry[-1, ]
+    #df_heat_entry <- df_heat_entry[,-1]
+    #df_heat_entry <- df_heat_entry[,-3]
+    #df_heat_entry <- df_heat_entry[,-5]
+    ##df_heat_entry <- df_heat_entry[,-6]
+    #df_heat_entry <- df_heat_entry[,-12]
+    #df_heat_entry <- df_heat_entry[,-11]
+    df_heat_entry <- df_heat_entry[ , c("°C","°F","High","Low","Chill°C","Hum. Humidity %" )]
+    
+    colnames(df_heat_entry) <- c("Date", "Time", "High", "Low", "Chill", "Humidity")
+    
+    #df_heat_entry$Wind <- sapply(df_heat_entry$Wind, toInt)
+    #df_heat_entry$Rain <- sapply(df_heat_entry$Rain, toInt)
+    df_heat_entry$High <- sapply(df_heat_entry$High, toInt)
+    df_heat_entry$Low <- sapply(df_heat_entry$Low, toInt)
+    df_heat_entry$Chill <- sapply(df_heat_entry$Chill, toInt)
+    df_heat_entry$Humidity <- sapply(df_heat_entry$Humidity, toInt)
+    df_heat_entry$Date <- sapply(df_heat_entry$Date, toDate)
+    df_heat_entry$Time <- sapply(df_heat_entry$Time, toTime)
+    
+    #df_heat_entry
+    
+    df_heat_entry_today <-
+      df_heat_entry[df_heat_entry$Date == Sys.Date(),]
+    wet_bulb_temperature_today <- numeric()
+    for (e in 1:nrow(df_heat_entry_today)) {
+      entry_high <- as.numeric(df_heat_entry[e, 3])
+      entry_humidity <- as.numeric(df_heat_entry[e, 6])
+      wet_bulb_temperature_today <-
+        c(wet_bulb_temperature_today,
+          wetBulb(toFahrenheit(entry_high), entry_humidity))
+    }
+    wet_bulb_temperature_today <-
+      round(max(wet_bulb_temperature_today), digits = 1)
+    #wet_bulb_temperature_today
+    
+    Warning <- "White"
+    Message <- ""
+    
+    red_list <- character()
+    orange_list <- character()
+    
+    for(p in 1:nrow(df_heat_entry)){
+      entry_high <- as.numeric(df_heat_entry[p,3])
+      entry_humidity <- as.numeric(df_heat_entry[p,6])
+      wet_bulb_temperature <- wetBulb(toFahrenheit(entry_high),entry_humidity)
+      #print(wet_bulb_temperature)
+      if(79 < wet_bulb_temperature & wet_bulb_temperature < 95.0) {
+        orange_list <- c(orange_list, paste(
+          as.character(df_heat_entry[p, 1]),
+          as.character(df_heat_entry[p, 2]),
+          sep = " "
+        ))
+      }
+      if(wet_bulb_temperature >= 95){
+        red_list <- c(red_list, paste(
+          as.character(df_heat_entry[p, 1]),
+          as.character(df_heat_entry[p, 2]),
+          sep = " "
+        ))
+      }
+    }
+    
+    if(length(red_list) > 0 &
+       length(orange_list) > 0) {
+      Warning <- "Red"
+    } else if (length(red_list) > 0) {
+      Warning <- "Red"
+    } else if (length(orange_list) > 0) {
+      Warning <- "Orange"
+    }
+    
+    if(length(orange_list) > 0 &
+       length(red_list) > 0) {
+      Message = paste0('<b><font color="red">Red</font></b> warning on ', str_flatten(red_list, ","),' and <b><font color="orange">Orange</font></b> warning on ', str_flatten(orange_list, ", "), ".")
+    } else if (length(orange_list) > 0) {
+      Message = paste0('<b><font color="orange">Orange</font></b> warning on ', str_flatten(orange_list, ", "), ".")
+    } else if (length(red_list) > 0) {
+      Message = paste0('<b><font color="red">Red</font></b> warning on ', str_flatten(red_list, ", "),".")
+    } else{
+      Message = "No warning."
+    }
+    
+    warnings_by_city_df <- data.frame(cbind(city,lat,lng,country,province,Warning,Message,wet_bulb_temperature_today))
+    
+    warnings_by_city_df <- warnings_by_city_df%>%
+      mutate(popup_info = case_when(country == 'Pakistan' ~ "<img src= https://live.staticflickr.com/65535/51332151175_87d3a4de34_o.png/>",
+                                             country == 'Kuwait' ~ "<img src= https://live.staticflickr.com/65535/51330421677_a932ef56d9_o.png/>",
+                                             country == "Iran" ~ "<img src= https://live.staticflickr.com/65535/51332151550_251bc4c0c0_o.png/>",
+                                             country == "United States" ~ "<img src= https://live.staticflickr.com/65535/51330421122_9f5f4b00aa_o.png/>",
+                                             country == "Djibouti" ~ "<img src= https://live.staticflickr.com/65535/51331154541_932402d686_o.png/>")
+    )
+    
+    warnings_by_city_df <- warnings_by_city_df%>%
+      mutate(city_name_search=paste(city,", ",province,", ",country,sep = ""))
+    
+    warnings_by_city_df <- warnings_by_city_df%>%
+      mutate(popup_info=paste(popup_info, "<br/>",
+                              paste("<b>", city,"</b>", sep = ""),"<br/>",
+                              province,"<br/>",
+                              Message))
+    
+    map_data <- rbind(map_data,warnings_by_city_df)
+    cat(u, " DONE!\n")
+  },
+  error=function(e){cat("ERROR :",conditionMessage(e), as.character(u), city, "\n")})
+}
+map_data
+map_data_file_name <- paste0("map_data", Sys.Date(), ".csv")
+write.csv(map_data, map_data_file_name, row.names = FALSE)
+```
+
