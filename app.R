@@ -9,8 +9,7 @@ library(htmlwidgets)
 library(RColorBrewer)
 
 ##
-map_data_csv_name <- paste0("map_data", Sys.Date(), ".csv")
-map_data <- read.csv(map_data_csv_name)
+map_data <- read.csv("map_data2022-02-13.csv")
 
 city_columns <- c("city", "lat", "lng", "country", "province")
 warning_columns <- c("Warning", "Message")
