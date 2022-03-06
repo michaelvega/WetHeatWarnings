@@ -7,9 +7,16 @@ library(leaflet.extras)
 library(htmltools)
 library(htmlwidgets)
 library(RColorBrewer)
+library(lubridate)
 
 ##
-map_data <- read.csv("map_data2022-03-02.csv")
+curr_date_locale <- ymd_hms(Sys.time(), tz = "GMT")
+curr_date_utc <- with_tz(curr_date_locale, "GMT")
+curr_date_utc_formatted <- as.Date.character(curr_date_utc)
+
+map_data_file_name <- paste0("map_data", curr_date_utc_formatted, ".csv")
+
+map_data <- read.csv(map_data_file_name)
 
 city_columns <- c("city", "lat", "lng", "country", "province")
 warning_columns <- c("Warning", "Message")
