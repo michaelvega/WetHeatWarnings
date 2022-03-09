@@ -10,12 +10,14 @@ library(RColorBrewer)
 library(lubridate)
 
 ##
+setwd("./")
 curr_date_locale <- ymd_hms(Sys.time(), tz = "GMT")
 curr_date_utc <- with_tz(curr_date_locale, "GMT")
 curr_date_utc_formatted <- as.Date.character(curr_date_utc)
 
 map_data_file_name <- paste0("map_data", curr_date_utc_formatted, ".csv")
 
+cat(map_data_file_name, "\n")
 map_data <- read.csv(map_data_file_name)
 
 city_columns <- c("city", "lat", "lng", "country", "province")
