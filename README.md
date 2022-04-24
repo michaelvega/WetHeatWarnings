@@ -12,7 +12,7 @@ Humans cannot survive in >95F wet bulb temperature for more than a few hours, si
 * **Orange** warning indicates WBT above 89 degrees
 * **Yellow** warning indicates WBT above 79 degrees
 
-### [**Live on shinyapps.io!**](https://michaelvega.shinyapps.io/wetheatwarning/)
+### [**Live on shinyapps.io!**](https://michaelvega.shinyapps.io/WetHeatWarnings/)
 
 <img src="./res/wetheat.png" alt="Image of Sample Map" width="900" height="542">
 
