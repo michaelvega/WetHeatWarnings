@@ -2,6 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
-.build
+.build/
 plots/
 logs/
