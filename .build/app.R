@@ -10,12 +10,12 @@ library(RColorBrewer)
 library(lubridate)
 
 ##
-setwd("./")
-curr_date_locale <- ymd_hms(Sys.time(), tz = "GMT")
-curr_date_utc <- with_tz(curr_date_locale, "GMT")
-curr_date_utc_formatted <- as.Date.character(curr_date_utc)
+#setwd("../.build")
 
-map_data_file_name <- paste0("map_data", curr_date_utc_formatted, ".csv")
+daily_name <- read.delim("dailyname.txt",header = FALSE)
+daily_name_str <- daily_name[[1]]
+
+map_data_file_name <- daily_name_str
 
 cat(map_data_file_name, "\n")
 map_data <- read.csv(map_data_file_name)
@@ -40,18 +40,16 @@ cat(colnames(map_data))
 ##
 threshold_benchmark <-
   data.frame(
-    city = c("NOTREALCITY"),
-    lat = c(179),
-    lng = c(179),
-    country = c("NOTREALCOUNTRY"),
-    province = c("NOTREALPROVINCE"),
-    Warning = c("Red"),
-    Message = c("<b><font color='red'>Red</font></b> warning on NEVER"),
-    wet_bulb_temperature_today = c(95),
-    popup_info = c(
-      "<img src= https://live.staticflickr.com/65535/51359614069_e968c76f10_o.png/> <br/> <b>NOTREALCITY</b> <br/> NOTREALPROVINCE <br/> <b><font color='red'>Red</font></b> warning on NEVER"
-    ),
-    city_name_search = c("0")
+    city = "NOTREALCITY",
+    lat = 179,
+    lng = 179,
+    country = "NOTREALCOUNTRY",
+    province = "NOTREALPROVINCE",
+    Warning = "Red",
+    Message = "<b><font color='red'>Red</font></b> warning on NEVER",
+    wet_bulb_temperature_today = 95,
+    popup_info = "<img src= https://live.staticflickr.com/65535/51359614069_e968c76f10_o.png/> <br/> <b>NOTREALCITY</b> <br/> NOTREALPROVINCE <br/> <b><font color='red'>Red</font></b> warning on NEVER",
+    city_name_search = "0"
   )
 map_data <- rbind(map_data, threshold_benchmark)
 ##
@@ -65,16 +63,16 @@ map_data <- map_data %>%
     )
   )
 
-map_data
+head(map_data)
 
-choices = c(
+choices <- c(
   "Red" = 1,
   "Orange" = 2,
   "White" = 3,
   "No Data" = 4
 )
 
-default_choices = choices[1:3]
+default_choices <- choices[1:3]
 
 colorpal <- colorNumeric(
   palette = "RdYlGn",
