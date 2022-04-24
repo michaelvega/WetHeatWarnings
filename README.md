@@ -14,6 +14,6 @@ Humans cannot survive in >95F wet bulb temperature for more than a few hours, si
 
 ### [**Live on shinyapps.io!**](https://michaelvega.shinyapps.io/wetheatwarning/)
 
-<img src="./res/wetheat.png" alt="Image of Sample Map" width="1647" height="991">
+<img src="./res/wetheat.png" alt="Image of Sample Map" width="900" height="542">
 
 ```Note:``` WBT (Wet Bulb Temperature) measured in Fahrenheit. 
