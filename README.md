@@ -1,9 +1,3 @@
----
-output:
-  pdf_document: default
-  html_document: default
-  word_document: default
----
 # WetHeatWarnings
 
 ### Purpose
@@ -17,6 +11,13 @@ Humans cannot survive in >95F wet bulb temperature for more than a few hours, si
 * **Red** warning indicates WBT above 95 degrees
 * **Orange** warning indicates WBT above 89 degrees
 * **Yellow** warning indicates WBT above 79 degrees
+
+---
+### Labels:
+  **Red**: warning indicates WBT above 95 degrees
+  **Orange**: warning indicates WBT above 89 degrees
+  **Yellow**: warning indicates WBT above 79 degrees
+---
 
 ### [**Live on shinyapps.io!**](https://michaelvega.shinyapps.io/WetHeatWarnings/)
 
