@@ -12,6 +12,12 @@ Humans cannot survive in >95F wet bulb temperature for more than a few hours, si
 * **Orange** warning indicates WBT above 89 degrees
 * **Yellow** warning indicates WBT above 79 degrees
 
+| Labels      | Test Text     |
+| :---        |          ---: |
+| Header      | Here's this   |
+| Paragraph   | And more      |
+| Paragraph   | And more      |
+
 ---
 Labels:
   Red: warning indicates WBT above 95 degrees
