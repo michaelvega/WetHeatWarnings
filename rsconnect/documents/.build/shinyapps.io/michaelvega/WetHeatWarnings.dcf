@@ -5,9 +5,9 @@ account: michaelvega
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4510912
-bundleId: 6824459
+bundleId: 6859334
 url: https://michaelvega.shinyapps.io/WetHeatWarnings/
-when: 1675879475.38416
-lastSyncTime: 1675879475.38416
+when: 1676665486.8017
+lastSyncTime: 1676665486.8017
 asMultiple: FALSE
 asStatic: FALSE
